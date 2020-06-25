@@ -8,7 +8,7 @@ from lib.utils import get_data_loaders, train_parse_args
 
 
 class Trainer:
-    def __init__(self, mode='.py', params, model=None, optimizer=None, criterion=None):
+    def __init__(self, params, model, optimizer, criterion):
         self.params = params
         self.imgs_dir = self.params['imgs_dir']
         self.labels_filename = self.params['labels_filename']
@@ -68,24 +68,4 @@ class Trainer:
 
             self.train_phase(train_loader, epoch)
             self.valid_phase(valid_loader, epoch)
-
-
-def main():
-    params = vars(train_parse_args())
-
-    loaders = get_data_loaders(
-        imgs_dir=params['imgs_dir'],
-        labels_filename=params['labels_filename'],
-        batch_size=params['batch_size'])
-
-    model = SimpleClassifier()
-    optimizer = Adam(model.parameters(), lr=3e-4)
-    criterion = BCELoss()
-    trainer = Trainer(params, model, optimizer, criterion)
-
-    trainer.run(loaders)
-
-
-if __name__ == "__main__":
-    main()
 

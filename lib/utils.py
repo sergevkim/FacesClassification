@@ -19,12 +19,12 @@ def train_parse_args():
         help="batch_size, default: 64")
     parser.add_argument(
         '--checkpoints-dir',
-        default=f"{Path.cwd()}/runs"),
+        default=f"{Path.cwd()}/runs",
         type=str,
         help="checkpoints dir, default: ./checkpoints")
     parser.add_argument(
         '--imgs-dir',
-        default=f"{Path.cwd()}/data/CelebA"),
+        default=f"{Path.cwd()}/data/CelebA",
         type=str,
         help="imgs dir, default: ./data/CelebA")
     parser.add_argument(
@@ -34,7 +34,7 @@ def train_parse_args():
         help="labels description, default: ./data/list_attr_celeba.txt")
     parser.add_argument(
         '--logs-dir',
-        default=f"{Path.cwd()}/runs"),
+        default=f"{Path.cwd()}/runs",
         type=str,
         help="logs dir, default: ./runs")
 
@@ -42,7 +42,7 @@ def train_parse_args():
 
 
 def get_data_loaders(imgs_dir, labels_filename, batch_size):
-    img_filenames = [str(p) for p in Path(imgs_dir.glob('*.png'))]
+    img_filenames = [str(p) for p in Path(imgs_dir).glob('*.png')]
     #labels = [str(p) for p in Path(imgs_dir.glob('*.png'))]
     #TODO labels file handler
 
