@@ -18,9 +18,9 @@ def train_parse_args():
         help="checkpoints dir, default: checkpoints".format(Path.cwd()))
     parser.add_argument(
         '--logs-dir',
-        default="{}/logs".format(Path.cwd()),
+        default="{}/runs".format(Path.cwd()),
         type=str,
-        help="logs dir, default: logs".format(Path.cwd()))
+        help="logs dir, default: runs".format(Path.cwd()))
 
     return vars(parser.parse_args())
 

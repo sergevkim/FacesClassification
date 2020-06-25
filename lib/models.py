@@ -10,7 +10,7 @@ import lib
 class SimpleClassifier(nn.Module):
     def __init__(self):
         super(SimpleClassifier, self).__init__()
-
+        self.main = Sequential()
 
     def forward(self, x):
         pass

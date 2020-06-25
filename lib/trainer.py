@@ -7,16 +7,30 @@ from lib.utils import get_data_loaders, train_parse_args
 
 class Trainer:
     def __init__(self, mode='.py', model=None, optimizer=None, criterion=None, params=None):
+        """
+        params is
+        {
+            'batch_size': int,
+            'checkpoints_dir': str,
+            'verbose': bool,
+            etc...
+        }
+        """
         if mode == '.py':
             self.params = train_parse_args()
         elif mode == '.ipynb':
             self.params = params
-        assert params != None
+        assert params != None, "If mode is '.ipynb', you have to do params dict by yourself"
+
+        self.checkpoints_dir = self.params['checkpoints_dir']
+        self.logs_dir = self.params['logs_dir']
+        self.version = self.params['version']
+        self.verbose = self.params['verbose']
 
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
-        self.writer = SummaryWriter(self.params['logs_dir'])
+        self.writer = SummaryWriter(self.logs_dir)
 
 
     def save(self, epoch):
@@ -27,22 +41,17 @@ class Trainer:
             'optimizer_state_dict': self.optimizer.state_dict(),
             'epoch': epoch,
         }
-        checkpoint_path = "{}/v{}-e{}.hdf5".format(
-            self.params['checkpoints_dir'],
-            self.params['version'],
-            epoch)
+        dir = self.params['checkpoints_dir'],
+        checkpoint_path = f"{self.checkpoints_dir}/v{self.version}-e{epoch}.hdf5"
         torch.save(state_dict, checkpoint_path)
 
 
     def log(self, accuracy, epoch):
-        self.model.eval()
-
-        accuracy = validate_classifier(self.model)
-
+        #TODO other metrics
         self.writer.add_scalar('accuracy', accuracy.item(), epoch)
 
 
-    def train_one_epoch(self, train_loader, epoch):
+    def train_phase(self, train_loader, epoch):
         for batch_idx, batch in enumerate(train_loader):
             self.model.train()
             self.optimizer.zero_grad()
@@ -55,7 +64,7 @@ class Trainer:
             optimizer.step()
 
 
-    def validation(self, val_loader, epoch):
+    def valid_phase(self, val_loader, epoch):
         self.model.val()
 
         accuracy = None #TODO
@@ -69,9 +78,9 @@ class Trainer:
         valid_loader = loaders['valid_loader']
 
         for epoch in range(params['n_epochs']):
-            if self.params.verbose:
+            if self.verbose:
                 print("EPOCH {}".format(epoch))
 
-            self.train_one_epoch(train_loader, epoch)
-            self.valid(valid_loader, epoch)
+            self.train_phase(train_loader, epoch)
+            self.valid_phase(valid_loader, epoch)
 
