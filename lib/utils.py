@@ -12,13 +12,19 @@ def train_parse_args():
         type=int,
         help="batch_size, default: 64")
     parser.add_argument(
-        '--logs-dir',
+        '--checkpoints-dir',
         default="{}/runs".format(Path.cwd()),
         type=str,
-        help="logs dir".format(Path.cwd()))
+        help="checkpoints dir, default: checkpoints".format(Path.cwd()))
+    parser.add_argument(
+        '--logs-dir',
+        default="{}/logs".format(Path.cwd()),
+        type=str,
+        help="logs dir, default: logs".format(Path.cwd()))
 
     return vars(parser.parse_args())
 
 
 def get_data_loaders():
     pass
+
