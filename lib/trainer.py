@@ -1,3 +1,5 @@
+import torch
+from torch.nn import BCELoss
 from torch.optim import Adam
 from torch.utils.tensorboard import SummaryWriter
 
@@ -7,15 +9,7 @@ from lib.utils import get_data_loaders, train_parse_args
 
 class Trainer:
     def __init__(self, mode='.py', params, model=None, optimizer=None, criterion=None):
-        """
-        params is a dict:
-        {
-            'batch_size': int,
-            'checkpoints_dir': str,
-            'verbose': bool,
-            etc...
-        }
-        """
+        self.params = params
         self.imgs_dir = self.params['imgs_dir']
         self.labels_filename = self.params['labels_filename']
         self.checkpoints_dir = self.params['checkpoints_dir']
@@ -27,7 +21,6 @@ class Trainer:
         self.optimizer = optimizer
         self.criterion = criterion
         self.writer = SummaryWriter(self.logs_dir)
-
 
     def save(self, epoch):
         state_dict = {
@@ -41,11 +34,9 @@ class Trainer:
         checkpoint_path = f"{self.checkpoints_dir}/v{self.version}-e{epoch}.hdf5"
         torch.save(state_dict, checkpoint_path)
 
-
     def log(self, accuracy, epoch):
         #TODO other metrics
         self.writer.add_scalar('accuracy', accuracy.item(), epoch)
-
 
     def train_phase(self, train_loader, epoch):
         for batch_idx, batch in enumerate(train_loader):
@@ -59,7 +50,6 @@ class Trainer:
             loss.backward()
             optimizer.step()
 
-
     def valid_phase(self, val_loader, epoch):
         self.model.val()
 
@@ -67,7 +57,6 @@ class Trainer:
 
         self.save(epoch)
         self.log(accuracy, epoch)
-
 
     def run(self, loaders):
         train_loader = loaders['train_loader']
@@ -83,15 +72,15 @@ class Trainer:
 
 def main():
     params = vars(train_parse_args())
-    params['']
+
     loaders = get_data_loaders(
         imgs_dir=params['imgs_dir'],
-        labels_filename=params['labels_filename'])
+        labels_filename=params['labels_filename'],
+        batch_size=params['batch_size'])
 
-    #TODO
-    model = None
-    optimizer = None
-    criterion = None
+    model = SimpleClassifier()
+    optimizer = Adam(model.parameters(), lr=3e-4)
+    criterion = BCELoss()
     trainer = Trainer(params, model, optimizer, criterion)
 
     trainer.run(loaders)

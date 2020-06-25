@@ -6,7 +6,7 @@ import cv2
 from sklearn.model_selection import train_test_split
 
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import ToTensor
 
 
@@ -19,25 +19,37 @@ def train_parse_args():
         help="batch_size, default: 64")
     parser.add_argument(
         '--checkpoints-dir',
-        default="{}/runs".format(Path.cwd()),
+        default=f"{Path.cwd()}/runs"),
         type=str,
-        help="checkpoints dir, default: checkpoints".format(Path.cwd()))
+        help="checkpoints dir, default: ./checkpoints")
+    parser.add_argument(
+        '--imgs-dir',
+        default=f"{Path.cwd()}/data/CelebA"),
+        type=str,
+        help="imgs dir, default: ./data/CelebA")
+    parser.add_argument(
+        '--labels-filename',
+        default=f"{Path.cwd()}/data/list_attr_celeba.txt",
+        type=str,
+        help="labels description, default: ./data/list_attr_celeba.txt")
     parser.add_argument(
         '--logs-dir',
-        default="{}/runs".format(Path.cwd()),
+        default=f"{Path.cwd()}/runs"),
         type=str,
-        help="logs dir, default: runs".format(Path.cwd()))
+        help="logs dir, default: ./runs")
 
     return parser.parse_args()
 
 
-def get_data_loaders(imgs_dir, labels_filename):
+def get_data_loaders(imgs_dir, labels_filename, batch_size):
     img_filenames = [str(p) for p in Path(imgs_dir.glob('*.png'))]
     #labels = [str(p) for p in Path(imgs_dir.glob('*.png'))]
     #TODO labels file handler
 
     train_loader = DataLoader(
-        SimpleDataset(img_filenames),
+        SimpleDataset(
+            img_filenames=img_filenames,
+            labels=labels),
         batch_size=batch_size
     )
 
