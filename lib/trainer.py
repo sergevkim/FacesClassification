@@ -6,9 +6,9 @@ from lib.utils import get_data_loaders, train_parse_args
 
 
 class Trainer:
-    def __init__(self, mode='.py', model=None, optimizer=None, criterion=None, params=None):
+    def __init__(self, mode='.py', params, model=None, optimizer=None, criterion=None):
         """
-        params is
+        params is a dict:
         {
             'batch_size': int,
             'checkpoints_dir': str,
@@ -16,12 +16,8 @@ class Trainer:
             etc...
         }
         """
-        if mode == '.py':
-            self.params = train_parse_args()
-        elif mode == '.ipynb':
-            self.params = params
-        assert params != None, "If mode is '.ipynb', you have to do params dict by yourself"
-
+        self.imgs_dir = self.params['imgs_dir']
+        self.labels_filename = self.params['labels_filename']
         self.checkpoints_dir = self.params['checkpoints_dir']
         self.logs_dir = self.params['logs_dir']
         self.version = self.params['version']
@@ -41,7 +37,7 @@ class Trainer:
             'optimizer_state_dict': self.optimizer.state_dict(),
             'epoch': epoch,
         }
-        dir = self.params['checkpoints_dir'],
+        checkpoints_dir = self.params['checkpoints_dir'],
         checkpoint_path = f"{self.checkpoints_dir}/v{self.version}-e{epoch}.hdf5"
         torch.save(state_dict, checkpoint_path)
 
@@ -83,4 +79,24 @@ class Trainer:
 
             self.train_phase(train_loader, epoch)
             self.valid_phase(valid_loader, epoch)
+
+
+def main():
+    params = vars(train_parse_args())
+    params['']
+    loaders = get_data_loaders(
+        imgs_dir=params['imgs_dir'],
+        labels_filename=params['labels_filename'])
+
+    #TODO
+    model = None
+    optimizer = None
+    criterion = None
+    trainer = Trainer(params, model, optimizer, criterion)
+
+    trainer.run(loaders)
+
+
+if __name__ == "__main__":
+    main()
 
