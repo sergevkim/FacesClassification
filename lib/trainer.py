@@ -1,21 +1,17 @@
 import torch
-from torch.nn import BCELoss
-from torch.optim import Adam
 from torch.utils.tensorboard import SummaryWriter
-
-from lib.models import SimpleClassifier
-from lib.utils import get_data_loaders, train_parse_args
 
 
 class Trainer:
     def __init__(self, params, model, optimizer, criterion):
         self.params = params
+        self.checkpoints_dir = self.params['checkpoints_dir']
         self.imgs_dir = self.params['imgs_dir']
         self.labels_filename = self.params['labels_filename']
-        self.checkpoints_dir = self.params['checkpoints_dir']
         self.logs_dir = self.params['logs_dir']
-        self.version = self.params['version']
+        self.n_epochs = self.params['n_epochs']
         self.verbose = self.params['verbose']
+        self.version = self.params['version']
 
         self.model = model
         self.optimizer = optimizer
@@ -62,7 +58,7 @@ class Trainer:
         train_loader = loaders['train_loader']
         valid_loader = loaders['valid_loader']
 
-        for epoch in range(params['n_epochs']):
+        for epoch in range(self.n_epochs):
             if self.verbose:
                 print("EPOCH {}".format(epoch))
 

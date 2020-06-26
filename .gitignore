@@ -6,6 +6,8 @@ node_modules
 *~
 *.swp
 
+data/
+runs/
 notebooks/data/*
 notebooks/runs/*
 notebooks/.ipynb_checkpoints/*

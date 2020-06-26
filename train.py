@@ -1,3 +1,8 @@
+from torch.nn import BCELoss
+from torch.optim import Adam
+
+from lib.models import SimpleClassifier
+from lib.trainer import Trainer
 from lib.utils import train_parse_args, get_data_loaders
 
 

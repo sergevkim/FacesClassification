@@ -37,6 +37,20 @@ def train_parse_args():
         default=f"{Path.cwd()}/runs",
         type=str,
         help="logs dir, default: ./runs")
+    parser.add_argument(
+        '--n-epochs',
+        default=10,
+        type=int,
+        help="n_epochs, default: 10")
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help="verbose flag")
+    parser.add_argument(
+        '--version',
+        default="0.1",
+        type=str,
+        help="version, default: 0.1")
 
     return parser.parse_args()
 
@@ -83,6 +97,9 @@ class SimpleDataset:
     def __init__(self, img_filenames, img_labels):
         self.img_filenames = img_filenames
         self.img_labels = img_labels
+
+    def __len__(self):
+        return len(self.img_filenames)
 
     def __getitem__(self, idx):
         img_filename = self.img_filenames[idx]
