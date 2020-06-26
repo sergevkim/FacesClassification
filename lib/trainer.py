@@ -36,15 +36,18 @@ class Trainer:
 
     def train_phase(self, train_loader, epoch):
         for batch_idx, batch in enumerate(train_loader):
+            if self.verbose:
+                print(batch_idx)
+
             self.model.train()
             self.optimizer.zero_grad()
 
             inputs, labels = batch
-            outputs = self.model(inputs)
+            outputs = self.model(inputs).double()
 
             loss = self.criterion(outputs, labels)
             loss.backward()
-            optimizer.step()
+            self.optimizer.step()
 
     def valid_phase(self, val_loader, epoch):
         self.model.eval()
@@ -63,5 +66,5 @@ class Trainer:
                 print("EPOCH {}".format(epoch))
 
             self.train_phase(train_loader, epoch)
-            self.valid_phase(valid_loader, epoch)
+            #self.valid_phase(valid_loader, epoch)
 

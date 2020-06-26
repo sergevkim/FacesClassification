@@ -24,9 +24,9 @@ def train_parse_args():
         help="checkpoints dir, default: ./checkpoints")
     parser.add_argument(
         '--imgs-dir',
-        default=f"{Path.cwd()}/data/CelebA",
+        default=f"{Path.cwd()}/data/CelebaHQ",
         type=str,
-        help="imgs dir, default: ./data/CelebA")
+        help="imgs dir, default: ./data/CelebaHQ")
     parser.add_argument(
         '--labels-filename',
         default=f"{Path.cwd()}/data/list_attr_celeba.txt",
@@ -43,6 +43,11 @@ def train_parse_args():
         type=int,
         help="n_epochs, default: 10")
     parser.add_argument(
+        '--n-imgs',
+        default=30000,
+        type=int,
+        help="n_imgs, default: 30000")
+    parser.add_argument(
         '--verbose',
         action='store_true',
         help="verbose flag")
@@ -55,7 +60,7 @@ def train_parse_args():
     return parser.parse_args()
 
 
-def prepare_labels(labels_filename):
+def prepare_labels(labels_filename, img_filenames, n_imgs):
     labels_file = open(labels_filename, 'r')
     n_filenames = int(labels_file.readline())
     all_features = labels_file.readline().split()
@@ -64,24 +69,29 @@ def prepare_labels(labels_filename):
 
     for i in range(n_filenames):
         string = labels_file.readline().split()
-        img_filename = string[0]
-        labels[img_filename] = string[5] # 5 index is bald feature
+        img_number = int(string[0].split('.')[0])
+        img_filename = f"/home/sergevkim/git/FacesClassification/data/CelebaHQ/{img_number}.png"
+        if img_number <= 30000:
+            labels[img_filename] = float(string[5]) # 5 index is bald feature
 
     labels_file.close()
 
     return labels
 
 
-def get_data_loaders(imgs_dir, labels_filename, batch_size):
+def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs):
     img_filenames = [str(p) for p in Path(imgs_dir).glob('*.png')]
-    labels = prepare_labels(labels_filename)
+    labels = prepare_labels(labels_filename, img_filenames, n_imgs)
 
+    train_dataset = SimpleDataset(
+        img_filenames=img_filenames,
+        img_labels=labels)
+    print('!', len(train_dataset))
+    print(len(labels))
+    print(len(img_filenames))
     train_loader = DataLoader(
-        SimpleDataset(
-            img_filenames=img_filenames,
-            img_labels=labels),
-        batch_size=batch_size
-    )
+        train_dataset,
+        batch_size=batch_size)
 
     valid_loader = None #TODO
 
