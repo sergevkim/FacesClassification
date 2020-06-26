@@ -47,7 +47,7 @@ class Trainer:
             optimizer.step()
 
     def valid_phase(self, val_loader, epoch):
-        self.model.val()
+        self.model.eval()
 
         accuracy = None #TODO
 
