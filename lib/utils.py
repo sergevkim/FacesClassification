@@ -41,18 +41,26 @@ def train_parse_args():
     return parser.parse_args()
 
 
-def get_data_loaders(imgs_dir, labels_filename, batch_size):
-    img_filenames = [str(p) for p in Path(imgs_dir).glob('*.png')]
+def prepare_labels(labels_filename):
     labels_file = open(labels_filename, 'r')
-
-    #TODO labels file handler
     n_filenames = int(labels_file.readline())
     all_features = labels_file.readline().split()
-    selected_features = ['Bald', 'Eyeglasses', 'Male', 'Smiling', 'Young']
+    #selected_features = ['Bald', 'Eyeglasses', 'Male', 'Smiling', 'Young']
+    labels = dict()
 
     for i in range(n_filenames):
-        string = labels_file.readline()
-    #<<<
+        string = labels_file.readline().split()
+        img_filename = string[0]
+        labels[img_filename] = string[5] # 5 index is bald feature
+
+    labels_file.close()
+
+    return labels
+
+
+def get_data_loaders(imgs_dir, labels_filename, batch_size):
+    img_filenames = [str(p) for p in Path(imgs_dir).glob('*.png')]
+    labels = prepare_labels(labels_filename)
 
     train_loader = DataLoader(
         SimpleDataset(
