@@ -65,9 +65,11 @@ def get_data_loaders(imgs_dir, labels_filename, batch_size):
     train_loader = DataLoader(
         SimpleDataset(
             img_filenames=img_filenames,
-            labels=labels),
+            img_labels=labels),
         batch_size=batch_size
     )
+
+    valid_loader = None #TODO
 
     loaders = {
         'train_loader': train_loader,
@@ -80,14 +82,14 @@ def get_data_loaders(imgs_dir, labels_filename, batch_size):
 class SimpleDataset:
     def __init__(self, img_filenames, img_labels):
         self.img_filenames = img_filenames
-        self.labels = labels
+        self.img_labels = img_labels
 
     def __getitem__(self, idx):
         img_filename = self.img_filenames[idx]
         img = cv2.imread(img_filename)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = ToTensor()(img)
-        label = self.labels[img_filename]
+        label = self.img_labels[img_filename]
 
         return (img, label)
 
