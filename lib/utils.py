@@ -23,6 +23,10 @@ def train_parse_args():
         type=str,
         help="checkpoints dir, default: ./checkpoints")
     parser.add_argument(
+        '--disable-cuda',
+        action='store_true',
+        help="disable_cuda flag, by defaut it fits in cuda")
+    parser.add_argument(
         '--imgs-dir',
         default=f"{Path.cwd()}/data/CelebaHQ",
         type=str,
@@ -79,7 +83,7 @@ def prepare_labels(labels_filename, img_filenames, n_imgs):
     return labels
 
 
-def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs):
+def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, device):
     img_filenames = [str(p) for p in Path(imgs_dir).glob('*.png')]
     labels = prepare_labels(labels_filename, img_filenames, n_imgs)
 
@@ -115,7 +119,7 @@ class SimpleDataset:
         img_filename = self.img_filenames[idx]
         img = cv2.imread(img_filename)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = ToTensor()(img)
+        img = ToTensor()(img).to(device)
         label = self.img_labels[img_filename]
 
         return (img, label)

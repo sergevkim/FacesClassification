@@ -8,14 +8,18 @@ from lib.utils import train_parse_args, get_data_loaders
 
 def main():
     params = vars(train_parse_args())
-    print(params['labels_filename'])
-    print(params['imgs_dir'])
+    if not params['disable_cuda'] and torch.cuda.is_available():
+        params['device'] = torch.device('cuda')
+    else:
+        params['device'] = torch.device('cpu')
+
 
     loaders = get_data_loaders(
         imgs_dir=params['imgs_dir'],
         labels_filename=params['labels_filename'],
         batch_size=params['batch_size'],
-        n_imgs=params['n_imgs'])
+        n_imgs=params['n_imgs'],
+        device=params['device'])
 
     model = SimpleClassifier()
     optimizer = Adam(model.parameters(), lr=3e-4)
