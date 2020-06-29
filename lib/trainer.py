@@ -1,3 +1,5 @@
+import time
+
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
@@ -6,6 +8,7 @@ class Trainer:
     def __init__(self, params, model, optimizer, criterion):
         self.params = params
         self.checkpoints_dir = self.params['checkpoints_dir']
+        self.device = self.params['device']
         self.imgs_dir = self.params['imgs_dir']
         self.labels_filename = self.params['labels_filename']
         self.logs_dir = self.params['logs_dir']
@@ -36,25 +39,29 @@ class Trainer:
 
     def train_phase(self, train_loader, epoch):
         for batch_idx, batch in enumerate(train_loader):
-            if self.verbose:
-                print(batch_idx)
-
             self.model.train()
             self.optimizer.zero_grad()
 
             inputs, labels = batch
+            labels = labels.to(self.device)
             outputs = self.model(inputs).double()
+
+            #TODO wtf
+            outputs = outputs.view_as(labels)
 
             loss = self.criterion(outputs, labels)
             loss.backward()
             self.optimizer.step()
+
+            if self.verbose:
+                if batch_idx % 50 == 0:
+                    print(epoch, batch_idx, loss.item())
 
     def valid_phase(self, val_loader, epoch):
         self.model.eval()
 
         accuracy = None #TODO
 
-        self.save(epoch)
         self.log(accuracy, epoch)
 
     def run(self, loaders):
@@ -63,8 +70,13 @@ class Trainer:
 
         for epoch in range(self.n_epochs):
             if self.verbose:
+                time_start = time.time()
                 print("EPOCH {}".format(epoch))
 
             self.train_phase(train_loader, epoch)
             #self.valid_phase(valid_loader, epoch)
+            self.save(epoch)
+
+            if self.verbose:
+                print(f"Epoch time: {time_start - time.time()}")
 

@@ -10,56 +10,56 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import ToTensor
 
 
-def train_parse_args():
+def train_parse_args(params):
     parser = ArgumentParser()
     parser.add_argument(
         '--batch-size',
-        default=64,
+        default=params['batch_size'],
         type=int,
-        help="batch_size, default: 64")
+        help=f"batch_size, default: {params['batch_size']}")
     parser.add_argument(
         '--checkpoints-dir',
-        default=f"{Path.cwd()}/runs",
+        default=params['checkpoints_dir'],
         type=str,
-        help="checkpoints dir, default: ./checkpoints")
+        help=f"checkpoints dir, default: {params['checkpoints_dir']}")
     parser.add_argument(
         '--disable-cuda',
         action='store_true',
         help="disable_cuda flag, by defaut it fits in cuda")
     parser.add_argument(
         '--imgs-dir',
-        default=f"{Path.cwd()}/data/CelebaHQ",
+        default=params['imgs_dir'],
         type=str,
-        help="imgs dir, default: ./data/CelebaHQ")
+        help=f"imgs dir, default: params[imgd_dir]")
     parser.add_argument(
         '--labels-filename',
-        default=f"{Path.cwd()}/data/list_attr_celeba.txt",
+        default=params['labels_filename'],
         type=str,
-        help="labels description, default: ./data/list_attr_celeba.txt")
+        help=f"labels description, default: {params['labels_filename']}")
     parser.add_argument(
         '--logs-dir',
-        default=f"{Path.cwd()}/runs",
+        default=params['logs_dir'],
         type=str,
-        help="logs dir, default: ./runs")
+        help=f"logs dir, default: {params['logs_dir']}")
     parser.add_argument(
         '--n-epochs',
-        default=10,
+        default=params['n_epochs'],
         type=int,
-        help="n_epochs, default: 10")
+        help=f"n_epochs, default: {params['n_epochs']}")
     parser.add_argument(
         '--n-imgs',
-        default=30000,
+        default=params['n_imgs'],
         type=int,
-        help="n_imgs, default: 30000")
+        help=f"n_imgs, default: {params['n_imgs']}")
     parser.add_argument(
         '--verbose',
         action='store_true',
         help="verbose flag")
     parser.add_argument(
         '--version',
-        default="0.1",
+        default=params['version'],
         type=str,
-        help="version, default: 0.1")
+        help=f"version, default: {params['version']}")
 
     return parser.parse_args()
 
@@ -75,7 +75,7 @@ def prepare_labels(labels_filename, img_filenames, n_imgs):
         string = labels_file.readline().split()
         img_number = int(string[0].split('.')[0])
         img_filename = f"/home/sergevkim/git/FacesClassification/data/CelebaHQ/{img_number}.png"
-        if img_number <= 30000:
+        if 1 <= img_number <= 30000:
             labels[img_filename] = float(string[5]) # 5 index is bald feature
 
     labels_file.close()
@@ -89,10 +89,8 @@ def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, device):
 
     train_dataset = SimpleDataset(
         img_filenames=img_filenames,
-        img_labels=labels)
-    print('!', len(train_dataset))
-    print(len(labels))
-    print(len(img_filenames))
+        img_labels=labels,
+        device=device)
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size)
@@ -108,9 +106,10 @@ def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, device):
 
 
 class SimpleDataset:
-    def __init__(self, img_filenames, img_labels):
+    def __init__(self, img_filenames, img_labels, device):
         self.img_filenames = img_filenames
         self.img_labels = img_labels
+        self.device = device
 
     def __len__(self):
         return len(self.img_filenames)
@@ -119,8 +118,8 @@ class SimpleDataset:
         img_filename = self.img_filenames[idx]
         img = cv2.imread(img_filename)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = ToTensor()(img).to(device)
+        img = ToTensor()(img)
         label = self.img_labels[img_filename]
 
-        return (img, label)
+        return (img.to(self.device), label)
 

@@ -3,8 +3,30 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchvision.models import resnet18
 
 import lib
+
+
+def get_resnet():
+    model = resnet18(pretrained=False)
+    model.fc = nn.Linear(model.fc.in_features, 1)
+    model.cuda()
+
+    return model
+
+
+class ResNet(nn.Module):
+    def __init__(self):
+        super(ResNet, self).__init__()
+        self.backbone = resnet18(pretrained=False)
+        self.head_bald = nn.Linear(self.backbone.fc.out_features, 1)
+
+    def forward(self, inputs):
+        x = self.backbone(inputs)
+        x = self.head_bald(x)
+
+        return nn.Softmax(dim=1)(x)
 
 
 class SimpleClassifier(nn.Module):
@@ -22,5 +44,5 @@ class SimpleClassifier(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc3(x)
 
-        return nn.Softmax()(x)
+        return nn.Softmax(dim=1)(x)
 
