@@ -10,7 +10,8 @@ from lib.constants import get_hyperparameters
 
 
 def main():
-    params = vars(train_parse_args(get_hyperparameters()))
+    params_default = get_hyperparameters()
+    params = vars(train_parse_args(params_default))
     print(params)
     if not params['disable_cuda'] and torch.cuda.is_available():
         params['device'] = torch.device('cuda:0')
@@ -27,8 +28,8 @@ def main():
         n_imgs=params['n_imgs'],
         device=params['device'])
 
-    #model = get_resnet()
-    model = ResNet()
+    #model = ResNet()
+    model = SimpleClassifier()
     model.cuda()
 
     optimizer = Adam(model.parameters(), lr=3e-4)

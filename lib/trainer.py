@@ -50,12 +50,13 @@ class Trainer:
             outputs = outputs.view_as(labels)
 
             loss = self.criterion(outputs, labels)
-            loss.backward()
-            self.optimizer.step()
 
             if self.verbose:
                 if batch_idx % 50 == 0:
                     print(epoch, batch_idx, loss.item())
+
+            loss.backward()
+            self.optimizer.step()
 
     def valid_phase(self, val_loader, epoch):
         self.model.eval()
