@@ -3,6 +3,8 @@ import time
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
+from sklearn.metrics import accuracy_score
+
 
 class Trainer:
     def __init__(self, params, model, optimizer, criterion):
@@ -38,44 +40,61 @@ class Trainer:
         self.writer.add_scalar('accuracy', accuracy.item(), epoch)
 
     def train_phase(self, train_loader, epoch):
-        for batch_idx, batch in enumerate(train_loader):
-            self.model.train()
-            self.optimizer.zero_grad()
+        self.model.train()
 
+        for batch_idx, batch in enumerate(train_loader):
             inputs, labels = batch
+            inputs = inputs.to(self.device)
             labels = labels.to(self.device)
             outputs = self.model(inputs).double()
 
             #TODO wtf
-            outputs = outputs.view_as(labels)
+            #outputs = outputs.view_as(labels)
 
-            loss = self.criterion(outputs, labels)
+            loss = self.criterion(outputs, labels.unsqueeze(1))
 
             if self.verbose:
                 if batch_idx % 50 == 0:
                     print(epoch, batch_idx, loss.item())
 
+            self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
 
-    def valid_phase(self, val_loader, epoch):
+    def valid_phase(self, valid_loader, epoch):
         self.model.eval()
 
-        accuracy = None #TODO
+        accuracy = []
 
-        self.log(accuracy, epoch)
+        for batch_idx, batch in enumerate(valid_loader):
+            inputs, labels = batch
+            inputs = inputs.to(self.device)
+            labels = labels.to(self.device)
+            outputs = self.model(inputs).double()
+            outputs_2 = outputs.cpu().detach().numpy().round() * 2 - 1
+            labels_2 = labels.cpu().detach().numpy()
+
+            accuracy.append(accuracy_score(outputs_2, labels_2))
+
+            if self.verbose:
+                if batch_idx % 50 == 0:
+                    print(batch_idx, accuracy[-1])
+
+        result = sum(accuracy) / len(accuracy)
+        self.log(result, epoch)
 
     def run(self, loaders):
         train_loader = loaders['train_loader']
         valid_loader = loaders['valid_loader']
 
-        for epoch in range(self.n_epochs):
+        self.valid_phase(valid_loader, epoch=0)
+        for epoch in range(1, self.n_epochs + 1):
             if self.verbose:
                 time_start = time.time()
                 print("EPOCH {}".format(epoch))
 
             self.train_phase(train_loader, epoch)
-            #self.valid_phase(valid_loader, epoch)
+            self.valid_phase(valid_loader, epoch)
             self.save(epoch)
 
             if self.verbose:

@@ -25,13 +25,11 @@ def main():
         imgs_dir=params['imgs_dir'],
         labels_filename=params['labels_filename'],
         batch_size=params['batch_size'],
-        n_imgs=params['n_imgs'],
-        device=params['device'])
+        n_imgs=params['n_imgs'])
 
-    #model = ResNet()
-    model = SimpleClassifier()
+    model = ResNet()
+    #model = SimpleClassifier()
     model.cuda()
-
     optimizer = Adam(model.parameters(), lr=3e-4)
     criterion = BCELoss()
     trainer = Trainer(params, model, optimizer, criterion)

@@ -5,8 +5,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models import resnet18
 
-import lib
-
 
 def get_resnet():
     model = resnet18(pretrained=False)
@@ -26,7 +24,7 @@ class ResNet(nn.Module):
         x = self.backbone(inputs)
         x = self.head_bald(x)
 
-        return nn.Softmax(dim=1)(x)
+        return torch.sigmoid(x)
 
 
 class SimpleClassifier(nn.Module):

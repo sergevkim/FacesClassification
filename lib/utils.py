@@ -83,19 +83,27 @@ def prepare_labels(labels_filename, img_filenames, n_imgs):
     return labels
 
 
-def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, device):
+def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs):
     img_filenames = [str(p) for p in Path(imgs_dir).glob('*.png')]
     labels = prepare_labels(labels_filename, img_filenames, n_imgs)
 
+    train_img_filenames, valid_img_filenames = train_test_split(
+        img_filenames,
+        test_size=0.1)
+
     train_dataset = SimpleDataset(
-        img_filenames=img_filenames,
-        img_labels=labels,
-        device=device)
+        img_filenames=train_img_filenames,
+        img_labels=labels)
     train_loader = DataLoader(
-        train_dataset,
+        dataset=train_dataset,
         batch_size=batch_size)
 
-    valid_loader = None #TODO
+    valid_dataset = SimpleDataset(
+        img_filenames=valid_img_filenames,
+        img_labels=labels)
+    valid_loader = DataLoader(
+        dataset=valid_dataset,
+        batch_size=batch_size)
 
     loaders = {
         'train_loader': train_loader,
@@ -106,10 +114,9 @@ def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, device):
 
 
 class SimpleDataset:
-    def __init__(self, img_filenames, img_labels, device):
+    def __init__(self, img_filenames, img_labels):
         self.img_filenames = img_filenames
         self.img_labels = img_labels
-        self.device = device
 
     def __len__(self):
         return len(self.img_filenames)
@@ -121,5 +128,5 @@ class SimpleDataset:
         img = ToTensor()(img)
         label = self.img_labels[img_filename]
 
-        return (img.to(self.device), label)
+        return (img, label)
 
