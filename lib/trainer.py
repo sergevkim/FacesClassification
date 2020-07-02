@@ -10,7 +10,7 @@ class Trainer:
     def __init__(self, params, model, optimizer, criterion):
         self.params = params
         self.checkpoints_dir = self.params['checkpoints_dir']
-        self.checkpoint_filename = self.params['checkpoint_checkpoint_filename']
+        self.checkpoint_filename = self.params['checkpoint_filename']
         self.device = self.params['device']
         self.imgs_dir = self.params['imgs_dir']
         self.labels_filename = self.params['labels_filename']
@@ -48,7 +48,7 @@ class Trainer:
 
     def log(self, accuracy, epoch):
         #TODO other metrics
-        self.writer.add_scalar('accuracy', accuracy.item(), epoch)
+        self.writer.add_scalar('accuracy/1', accuracy.item(), epoch)
 
     def train_phase(self, train_loader, epoch):
         for batch_idx, batch in enumerate(train_loader):
@@ -82,10 +82,11 @@ class Trainer:
             inputs = inputs.to(self.device)
             labels = labels.to(self.device)
             outputs = self.model(inputs).double()
-            outputs_2 = outputs.cpu().detach().numpy().round() * 2 - 1
-            labels_2 = labels.cpu().detach().numpy()
 
-            accuracy.append(accuracy_score(outputs_2, labels_2))
+            labels = labels.cpu().detach().numpy()
+            outputs = outputs.cpu().detach().numpy().round() * 2 - 1
+
+            accuracy.append(accuracy_score(outputs, labels))
 
             if self.verbose:
                 if batch_idx % 50 == 0:

@@ -6,14 +6,6 @@ import torch.nn.functional as F
 from torchvision.models import resnet18
 
 
-def get_resnet():
-    model = resnet18(pretrained=False)
-    model.fc = nn.Linear(model.fc.in_features, 1)
-    model.cuda()
-
-    return model
-
-
 class ResNet(nn.Module):
     def __init__(self):
         super(ResNet, self).__init__()

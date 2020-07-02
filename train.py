@@ -3,7 +3,7 @@ from torch.nn import BCELoss
 from torch.optim import Adam
 from torchvision.models import resnet18
 
-from lib.models import SimpleClassifier, ResNet, get_resnet
+from lib.models import SimpleClassifier, ResNet
 from lib.trainer import Trainer
 from lib.utils import train_parse_args, get_data_loaders
 from lib.constants import HYPERPARAMETERS
