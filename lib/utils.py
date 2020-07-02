@@ -23,6 +23,11 @@ def train_parse_args(params):
         type=str,
         help=f"checkpoints dir, default: {params['checkpoints_dir']}")
     parser.add_argument(
+        '--checkpoint-filename',
+        default=params['checkpoint_filename'],
+        type=str,
+        help=f"filename, default: {params['labels_filename']}")
+    parser.add_argument(
         '--disable-cuda',
         action='store_true',
         help="disable_cuda flag, by defaut it fits in cuda")

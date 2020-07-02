@@ -10,6 +10,7 @@ class Trainer:
     def __init__(self, params, model, optimizer, criterion):
         self.params = params
         self.checkpoints_dir = self.params['checkpoints_dir']
+        self.checkpoint_filename = self.params['checkpoint_checkpoint_filename']
         self.device = self.params['device']
         self.imgs_dir = self.params['imgs_dir']
         self.labels_filename = self.params['labels_filename']
@@ -23,8 +24,8 @@ class Trainer:
         self.criterion = criterion
         self.writer = SummaryWriter(self.logs_dir)
 
-    def save(self, epoch):
-        state_dict = {
+    def save_checkpoint(self, epoch):
+        checkpoint = {
             'model': self.model,
             'optimizer': self.optimizer,
             'model_state_dict': self.model.state_dict(),
@@ -33,16 +34,26 @@ class Trainer:
         }
         checkpoints_dir = self.params['checkpoints_dir'],
         checkpoint_path = f"{self.checkpoints_dir}/v{self.version}-e{epoch}.hdf5"
-        torch.save(state_dict, checkpoint_path)
+        torch.save(checkpoint, checkpoint_path)
+
+    def load_from_checkpoint(self):
+        checkpoint = torch.load(self.checkpoint_path)
+        self.model = checkpoint['model'].to(self.device)
+        self.optimizer = checkpoint['optimizer'].to(self.device) # ask about these two lines of code
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        epoch_start = checkpoint['epoch']
+
+        return epoch_start
 
     def log(self, accuracy, epoch):
         #TODO other metrics
         self.writer.add_scalar('accuracy', accuracy.item(), epoch)
 
     def train_phase(self, train_loader, epoch):
-        self.model.train()
-
         for batch_idx, batch in enumerate(train_loader):
+            self.model.train()
+
             inputs, labels = batch
             inputs = inputs.to(self.device)
             labels = labels.to(self.device)
@@ -62,11 +73,11 @@ class Trainer:
             self.optimizer.step()
 
     def valid_phase(self, valid_loader, epoch):
-        self.model.eval()
-
         accuracy = []
 
         for batch_idx, batch in enumerate(valid_loader):
+            self.model.eval()
+
             inputs, labels = batch
             inputs = inputs.to(self.device)
             labels = labels.to(self.device)
@@ -84,18 +95,23 @@ class Trainer:
         self.log(result, epoch)
 
     def run(self, loaders):
+        if self.checkpoint_filename:
+            epoch_start = self.load_from_checkpoint() # it loads state_dict for self.model and self.optimizer
+        else:
+            epoch_start = 1
+
         train_loader = loaders['train_loader']
         valid_loader = loaders['valid_loader']
 
         self.valid_phase(valid_loader, epoch=0)
-        for epoch in range(1, self.n_epochs + 1):
+        for epoch in range(epoch_start, epoch_start + self.n_epochs):
             if self.verbose:
                 time_start = time.time()
                 print("EPOCH {}".format(epoch))
 
             self.train_phase(train_loader, epoch)
             self.valid_phase(valid_loader, epoch)
-            self.save(epoch)
+            self.save_checkpoint(epoch)
 
             if self.verbose:
                 print(f"Epoch time: {time_start - time.time()}")

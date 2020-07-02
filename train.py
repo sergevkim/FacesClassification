@@ -6,11 +6,11 @@ from torchvision.models import resnet18
 from lib.models import SimpleClassifier, ResNet, get_resnet
 from lib.trainer import Trainer
 from lib.utils import train_parse_args, get_data_loaders
-from lib.constants import get_hyperparameters
+from lib.constants import HYPERPARAMETERS
 
 
 def main():
-    params_default = get_hyperparameters()
+    params_default = HYPERPARAMETERS
     params = vars(train_parse_args(params_default))
     print(params)
     if not params['disable_cuda'] and torch.cuda.is_available():
