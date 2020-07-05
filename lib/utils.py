@@ -9,6 +9,8 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import ToTensor
 
+from lib.constants import SELECTED_FEATURES
+
 
 def train_parse_args(params):
     parser = ArgumentParser()
@@ -30,12 +32,17 @@ def train_parse_args(params):
     parser.add_argument(
         '--disable-cuda',
         action='store_true',
-        help="disable_cuda flag, by defaut it fits in cuda")
+        help="disable_cuda flag, by defaut it fits on cuda")
     parser.add_argument(
         '--imgs-dir',
         default=params['imgs_dir'],
         type=str,
-        help=f"imgs dir, default: params[imgd_dir]")
+        help=f"imgs dir, default: {params[imgd_dir]}")
+    parser.add_argument(
+        '--label',
+        default=params['label'],
+        type=str,
+        help=f"imgs dir, default: {params[label]}")
     parser.add_argument(
         '--labels-filename',
         default=params['labels_filename'],
@@ -69,11 +76,10 @@ def train_parse_args(params):
     return parser.parse_args()
 
 
-def prepare_labels(labels_filename, img_filenames, n_imgs):
+def prepare_labels(labels_filename, img_filenames, n_imgs, label_number):
     labels_file = open(labels_filename, 'r')
     n_filenames = int(labels_file.readline())
     all_features = labels_file.readline().split()
-    #selected_features = ['Bald', 'Eyeglasses', 'Male', 'Smiling', 'Young']
     labels = dict()
 
     for i in range(n_filenames):
@@ -81,16 +87,17 @@ def prepare_labels(labels_filename, img_filenames, n_imgs):
         img_number = int(string[0].split('.')[0])
         img_filename = f"/home/sergevkim/git/FacesClassification/data/CelebaHQ/{img_number}.png"
         if 1 <= img_number <= 30000:
-            labels[img_filename] = float(string[5]) # 5 index is bald feature
+            labels[img_filename] = float(string[label_number]) # 5 index is bald feature
 
     labels_file.close()
 
     return labels
 
 
-def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs):
+def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, label='Male'):
     img_filenames = [str(p) for p in Path(imgs_dir).glob('*.png')]
-    labels = prepare_labels(labels_filename, img_filenames, n_imgs)
+    label_number = SELECTED_FEATURES[label]
+    labels = prepare_labels(labels_filename, img_filenames, n_imgs, label_number)
 
     train_img_filenames, valid_img_filenames = train_test_split(
         img_filenames,

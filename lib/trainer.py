@@ -65,7 +65,7 @@ class Trainer:
             loss = self.criterion(outputs, labels.unsqueeze(1))
 
             if self.verbose:
-                if batch_idx % 50 == 0:
+                if batch_idx % 100 == 0:
                     print(epoch, batch_idx, loss.item())
 
             self.optimizer.zero_grad()
@@ -89,10 +89,11 @@ class Trainer:
             accuracy.append(accuracy_score(outputs, labels))
 
             if self.verbose:
-                if batch_idx % 50 == 0:
+                if batch_idx % 100 == 0:
                     print(batch_idx, accuracy[-1])
 
         result = sum(accuracy) / len(accuracy)
+        print('!', result)
         self.log(result, epoch)
 
     def run(self, loaders):
