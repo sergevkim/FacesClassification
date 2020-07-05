@@ -48,7 +48,7 @@ class Trainer:
 
     def log(self, accuracy, epoch):
         #TODO other metrics
-        self.writer.add_scalar('accuracy/1', accuracy.item(), epoch)
+        self.writer.add_scalar(f"accuracy/{self.version}", accuracy.item(), epoch)
 
     def train_phase(self, train_loader, epoch):
         for batch_idx, batch in enumerate(train_loader):
@@ -109,7 +109,7 @@ class Trainer:
         for epoch in range(epoch_start, epoch_start + self.n_epochs):
             if self.verbose:
                 time_start = time.time()
-                print("EPOCH {}".format(epoch))
+                print(f"EPOCH {epoch}")
 
             self.train_phase(train_loader, epoch)
             self.valid_phase(valid_loader, epoch)

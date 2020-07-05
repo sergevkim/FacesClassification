@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
 from pathlib import Path
+from PIL import Image
 
 import numpy as np
-import cv2
 from sklearn.model_selection import train_test_split
 
 import torch
@@ -135,8 +135,7 @@ class SimpleDataset:
 
     def __getitem__(self, idx):
         img_filename = self.img_filenames[idx]
-        img = cv2.imread(img_filename)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = Image.open(img_filename)
         img = ToTensor()(img)
         label = self.img_labels[img_filename]
 
