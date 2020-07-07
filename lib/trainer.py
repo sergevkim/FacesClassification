@@ -49,9 +49,9 @@ class Trainer:
 
         return epoch_start
 
-    def log(self, accuracy, epoch):
+    def log(self, item, name, epoch):
         #TODO other metrics
-        self.writer.add_scalar(f"accuracy/{self.version}", accuracy.item(), epoch)
+        self.writer.add_scalar(f"{name}/{self.version}", item, epoch)
 
     def train_phase(self, train_loader, epoch):
         for batch_idx, batch in enumerate(train_loader):
@@ -60,6 +60,7 @@ class Trainer:
 
             inputs, labels = batch
             inputs = inputs.to(self.device)
+            labels = (labels + 1) / 2 #TODO the best way?
             labels = labels.to(self.device)
             outputs = self.model(inputs).double()
 
@@ -67,10 +68,16 @@ class Trainer:
 
             if self.verbose:
                 if batch_idx % 100 == 0:
-                    print(epoch, batch_idx, loss.item())
+                    print('train', epoch, batch_idx, loss.item())
+                    print('l', labels)
+                    print('o', outputs)
 
             loss.backward()
             self.optimizer.step()
+            
+            #TODO remove
+            if batch_idx == 400:
+                break
 
     def valid_phase(self, valid_loader, epoch):
         accuracy = []
@@ -83,19 +90,25 @@ class Trainer:
             labels = labels.to(self.device)
             outputs = self.model(inputs).double()
 
-            labels = labels.cpu().detach().numpy()
-            outputs = outputs.cpu().detach().numpy()
-            outputs = normalize(outputs)
+            labels = (labels.cpu().detach().numpy() + 1) / 2
+            outputs_2 = outputs.cpu().detach().numpy()
+            #outputs_3 = normalize(outputs_2)
+            outputs_3 = np.round(outputs_2)
 
-            accuracy.append(accuracy_score(outputs, labels))
+            accuracy.append(accuracy_score(outputs_3, labels))
 
             if self.verbose:
                 if batch_idx % 100 == 0:
+                    print('O', outputs_2)
+                    print('L', labels)
                     print(batch_idx, accuracy[-1])
 
         result = sum(accuracy) / len(accuracy)
         print('!', result)
-        self.log(result, epoch)
+        self.log(
+            item=result,
+            name='accuracy',
+            epoch=epoch)
 
     def run(self, loaders):
         if self.checkpoint_filename:
