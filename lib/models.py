@@ -42,5 +42,5 @@ class SimpleClassifier(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc3(x)
 
-        return nn.Softmax(dim=1)(x)
+        return torch.sigmoid(x)
 
