@@ -51,9 +51,11 @@ class Trainer:
 
     def log(self, item, name, epoch):
         #TODO other metrics
-        self.writer.add_scalar(f"{name}/{self.version}", item, epoch)
+        self.writer.add_scalar(f"{name}/v{self.version}", item, epoch)
 
     def train_phase(self, train_loader, epoch):
+        result = 0
+
         for batch_idx, batch in enumerate(train_loader):
             self.model.train()
             self.optimizer.zero_grad()
@@ -65,6 +67,7 @@ class Trainer:
             outputs = self.model(inputs).double()
 
             loss = self.criterion(outputs, labels.unsqueeze(1))
+            result += loss.item()
 
             if self.verbose:
                 if batch_idx % 100 == 0:
@@ -76,8 +79,14 @@ class Trainer:
             self.optimizer.step()
             
             #TODO remove
-            if batch_idx == 400:
-                break
+            #if batch_idx == 400:
+            #    break
+
+        result /= 400
+        self.log(
+            item=result,
+            name='train loss',
+            epoch=epoch)
 
     def valid_phase(self, valid_loader, epoch):
         accuracy = []
