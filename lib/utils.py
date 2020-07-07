@@ -76,6 +76,21 @@ def train_parse_args(params):
     return parser.parse_args()
 
 
+def log_grad_norm(self, grad_input, grad_output):
+    print('Inside ' + self.__class__.__name__ + ' backward')
+    print('Inside class:' + self.__class__.__name__)
+    print('')
+    print('grad_input: ', type(grad_input))
+    print('grad_input[0]: ', type(grad_input[0]))
+    print('grad_output: ', type(grad_output))
+    print('grad_output[0]: ', type(grad_output[0]))
+    print('')
+    print('grad_input size:', grad_input[0].size())
+    print('grad_output size:', grad_output[0].size())
+    print('grad_input norm:', grad_input[0].norm())
+    print('!')
+
+
 def prepare_labels(labels_filename, img_filenames, n_imgs, label_number):
     labels_file = open(labels_filename, 'r')
     n_filenames = int(labels_file.readline())
@@ -140,4 +155,3 @@ class SimpleDataset:
         label = self.img_labels[img_filename]
 
         return (img, label)
-

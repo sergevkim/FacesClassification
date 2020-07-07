@@ -3,10 +3,13 @@ import time
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
+import numpy as np
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import normalize
 
 
 class Trainer:
+
     def __init__(self, params, model, optimizer, criterion):
         self.params = params
         self.checkpoints_dir = self.params['checkpoints_dir']
@@ -53,14 +56,12 @@ class Trainer:
     def train_phase(self, train_loader, epoch):
         for batch_idx, batch in enumerate(train_loader):
             self.model.train()
+            self.optimizer.zero_grad()
 
             inputs, labels = batch
             inputs = inputs.to(self.device)
             labels = labels.to(self.device)
             outputs = self.model(inputs).double()
-
-            #TODO wtf
-            #outputs = outputs.view_as(labels)
 
             loss = self.criterion(outputs, labels.unsqueeze(1))
 
@@ -68,7 +69,6 @@ class Trainer:
                 if batch_idx % 100 == 0:
                     print(epoch, batch_idx, loss.item())
 
-            self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
 
@@ -84,7 +84,8 @@ class Trainer:
             outputs = self.model(inputs).double()
 
             labels = labels.cpu().detach().numpy()
-            outputs = outputs.cpu().detach().numpy().round() * 2 - 1
+            outputs = outputs.cpu().detach().numpy()
+            outputs = normalize(outputs)
 
             accuracy.append(accuracy_score(outputs, labels))
 
@@ -116,5 +117,4 @@ class Trainer:
             self.save_checkpoint(epoch)
 
             if self.verbose:
-                print(f"Epoch time: {time_start - time.time()}")
-
+                print(f"Epoch time: {(time.time() - time_start) / 60} min")
