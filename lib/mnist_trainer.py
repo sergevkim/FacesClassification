@@ -55,25 +55,16 @@ class Trainer:
 
     def train_phase(self, train_loader, epoch):
         self.model.train()
+        result = 0
 
         for batch_idx, batch in enumerate(train_loader):
             inputs, labels = batch
             inputs = inputs.to(self.device)
-            labels = (labels + 1) / 2 #TODO the best way?
             labels = labels.to(self.device)
             outputs = self.model(inputs).double()
 
-            if batch_idx == 0:
-                result = 0
-            elif batch_idx % 100 == 0:
-                result /= 100
-                self.log(
-                    item=result,
-                    name='Train Loss',
-                    epoch=epoch * len(train_loader) + batch_idx)
-
             self.optimizer.zero_grad()
-            loss = self.criterion(outputs, labels.unsqueeze(1))
+            loss = self.criterion(outputs, labels) #changed
             result += loss.item()
             loss.backward()
             self.optimizer.step()
@@ -81,6 +72,13 @@ class Trainer:
             if self.verbose:
                 if batch_idx % 100 == 0:
                     print('train', epoch, batch_idx, loss.item())
+
+        result /= 4000
+        print('!', result)
+        self.log(
+            item=result,
+            name='Train Loss',
+            epoch=epoch)
 
     def valid_phase(self, valid_loader, epoch):
         self.model.eval()
@@ -90,10 +88,8 @@ class Trainer:
             inputs = inputs.to(self.device)
             #labels = labels.to(self.device)
             outputs = self.model(inputs).double()
-
-            labels = (labels.cpu().detach().numpy() + 1) / 2
-            outputs_2 = outputs.cpu().detach().numpy()
-            #outputs_3 = normalize(outputs_2)
+            outputs_1 = torch.argmax(outputs, dim=0)
+            outputs_2 = outputs_1.cpu().detach().numpy()
             outputs_3 = np.round(outputs_2)
 
             if batch_idx == 0:
@@ -105,11 +101,14 @@ class Trainer:
                     name='Valid Accuracy',
                     epoch=epoch * len(valid_loader) + batch_idx)
                 accuracy = []
+
             accuracy.append(accuracy_score(outputs_3, labels))
 
             if self.verbose:
                 if batch_idx % 100 == 0:
                     print(batch_idx, accuracy[-1])
+                    
+        print(sum(accuracy) / len(accuracy), len(valid_loader))
 
     def run(self, loaders):
         if self.checkpoint_filename:

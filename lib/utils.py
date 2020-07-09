@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 import torch
 from torch.utils.data import Dataset, DataLoader
-from torchvision.transforms import ToTensor
+from torchvision.transforms import ToTensor, Normalize
 
 from lib.constants import SELECTED_FEATURES
 
@@ -152,6 +152,9 @@ class SimpleDataset:
         img_filename = self.img_filenames[idx]
         img = Image.open(img_filename)
         img = ToTensor()(img)
+        img = Normalize(
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225])(img)
         label = self.img_labels[img_filename]
 
         return (img, label)

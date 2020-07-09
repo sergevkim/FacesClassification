@@ -15,6 +15,7 @@ HYPERPARAMETERS = {
     'verbose': False,
     'version': "0.1",
 }
+#TODO traintest split
 
 
 SELECTED_FEATURES = {
