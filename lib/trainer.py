@@ -62,6 +62,8 @@ class Trainer:
             labels = (labels + 1) / 2 #TODO the best way?
             labels = labels.to(self.device)
             outputs = self.model(inputs).double()
+            
+            #print(outputs.shape, labels.shape)
 
             if batch_idx == 0:
                 result = 0
@@ -109,7 +111,9 @@ class Trainer:
 
             if self.verbose:
                 if batch_idx % 100 == 0:
-                    print(batch_idx, accuracy[-1])
+                    print('valid', batch_idx, accuracy[-1])
+        
+        print(f"Accuracy is {sum(accuracy) / len(accuracy)}")
 
     def run(self, loaders):
         if self.checkpoint_filename:

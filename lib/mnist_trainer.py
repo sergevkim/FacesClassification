@@ -1,15 +1,18 @@
 import time
 
 import torch
+import torch.nn.functional as F
+from torch.optim import SGD
 from torch.utils.tensorboard import SummaryWriter
 
 import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import normalize
 
+from lib.models import CNNClassifier
+
 
 class Trainer:
-
     def __init__(self, params, model, optimizer, criterion):
         self.params = params
         self.checkpoints_dir = self.params['checkpoints_dir']
@@ -27,50 +30,28 @@ class Trainer:
         self.criterion = criterion
         self.writer = SummaryWriter(self.logs_dir)
 
-    def save_checkpoint(self, epoch):
-        checkpoint = {
-            'model': self.model,
-            'optimizer': self.optimizer,
-            'model_state_dict': self.model.state_dict(),
-            'optimizer_state_dict': self.optimizer.state_dict(),
-            'epoch': epoch,
-        }
-        checkpoints_dir = self.params['checkpoints_dir'],
-        checkpoint_path = f"{self.checkpoints_dir}/v{self.version}-e{epoch}.hdf5"
-        torch.save(checkpoint, checkpoint_path)
-
-    def load_from_checkpoint(self):
-        checkpoint = torch.load(self.checkpoint_path)
-        self.model = checkpoint['model'].to(self.device)
-        self.optimizer = checkpoint['optimizer'].to(self.device) # ask about these two lines of code
-        self.model.load_state_dict(checkpoint['model_state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-        epoch_start = checkpoint['epoch']
-
-        return epoch_start
-
     def log(self, item, name, epoch):
         #TODO other metrics
         self.writer.add_scalar(f"{name}/v{self.version}", item, epoch)
 
-    def train_phase(self, train_loader, epoch):
-        self.model.train()
+    def train_phase(self, model, optimizer, train_loader, epoch, device):
+        model.train()
         result = 0
 
-        for batch_idx, batch in enumerate(train_loader):
-            inputs, labels = batch
-            inputs = inputs.to(self.device)
-            labels = labels.to(self.device)
-            outputs = self.model(inputs).double()
+        for batch_idx, (inputs, labels) in enumerate(train_loader):
+            inputs = inputs.to(device)
+            labels = labels.to(device)
 
-            self.optimizer.zero_grad()
-            loss = self.criterion(outputs, labels) #changed
-            result += loss.item()
+            optimizer.zero_grad()
+            outputs = model(inputs).double()
+
+            loss = F.nll_loss(outputs, labels) #changed
             loss.backward()
-            self.optimizer.step()
+            optimizer.step()
+#            result += loss.item()
 
             if self.verbose:
-                if batch_idx % 100 == 0:
+                if batch_idx % 400 == 0:
                     print('train', epoch, batch_idx, loss.item())
 
         result /= 4000
@@ -80,17 +61,17 @@ class Trainer:
             name='Train Loss',
             epoch=epoch)
 
-    def valid_phase(self, valid_loader, epoch):
-        self.model.eval()
-
-        for batch_idx, batch in enumerate(valid_loader):
-            inputs, labels = batch
-            inputs = inputs.to(self.device)
-            #labels = labels.to(self.device)
-            outputs = self.model(inputs).double()
+    def valid_phase(self, model, valid_loader, epoch, device):
+        model.eval()
+        correct = 0
+        for batch_idx, (inputs, labels) in enumerate(valid_loader):
+            inputs = inputs.to(device)
+            outputs = model(inputs).double()
             outputs_1 = torch.argmax(outputs, dim=0)
             outputs_2 = outputs_1.cpu().detach().numpy()
             outputs_3 = np.round(outputs_2)
+
+            correct += outputs.cpu().eq(labels.data).cpu().sum()
 
             if batch_idx == 0:
                 accuracy = []
@@ -102,13 +83,20 @@ class Trainer:
                     epoch=epoch * len(valid_loader) + batch_idx)
                 accuracy = []
 
-            accuracy.append(accuracy_score(outputs_3, labels))
+            accuracy.append(accuracy_score(outputs_2, labels))
 
             if self.verbose:
-                if batch_idx % 100 == 0:
+                if batch_idx % 400 == 0:
+                    print('------------')
+                    print(labels)
+                    print(outputs_1)
                     print(batch_idx, accuracy[-1])
-                    
-        print(sum(accuracy) / len(accuracy), len(valid_loader))
+
+        print("CORREST IS:")
+        print(100. * correct / len(valid_loader.dataset))
+        print("ACCURACY IS:")
+        print(sum(accuracy) / len(accuracy), len(valid_loader.dataset))
+        print("----")
 
     def run(self, loaders):
         if self.checkpoint_filename:
@@ -119,14 +107,17 @@ class Trainer:
         train_loader = loaders['train_loader']
         valid_loader = loaders['valid_loader']
 
-        self.valid_phase(valid_loader, epoch=0)
+        device = torch.device('cuda:1')
+        model = CNNClassifier().to(self.params['device'])
+        optimizer = SGD(model.parameters(), lr=0.01, momentum=0.5)
+        self.valid_phase(model, valid_loader, 0, device)
         for epoch in range(epoch_start, epoch_start + self.n_epochs):
             if self.verbose:
                 time_start = time.time()
                 print(f"EPOCH {epoch}")
 
-            self.train_phase(train_loader, epoch)
-            self.valid_phase(valid_loader, epoch)
+            self.train_phase(model, optimizer, train_loader, epoch, device)
+            self.valid_phase(model, valid_loader, epoch, device)
             self.save_checkpoint(epoch)
 
             if self.verbose:
