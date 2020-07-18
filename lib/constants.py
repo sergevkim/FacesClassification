@@ -15,6 +15,14 @@ HYPERPARAMETERS = {
     'verbose': False,
     'version': "0.1",
 }
+
+
+PATHS = {
+    'checkpoints_dir': f"{Path.cwd()}/checkpoints",
+    'checkpoint_filename': "",
+    'labels_filename': f"{Path.cwd()}/data/list_attr_celeba.txt",
+    'logs_dir': f"{Path.cwd()}/logs",
+}
 #TODO traintest split
 
 

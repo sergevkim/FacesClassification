@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 
-def train_parse_args(params):
+def train_parse_args(params, paths=None): #TODO paths
     parser = ArgumentParser()
     parser.add_argument(
         '--batch-size',
