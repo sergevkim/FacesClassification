@@ -6,20 +6,20 @@ from torchvision.models import resnet18
 from lib.models import SimpleClassifier, ResNet
 from lib.trainer import Trainer
 from lib.utils import train_parse_args, get_data_loaders
-from lib.constants import HYPERPARAMETERS
+from lib.constants import HYPERPARAMETERS, PATHS
 
 
 def main():
-    params_default = HYPERPARAMETERS
-    params = vars(train_parse_args(params_default))
-    print(params)
+    params = vars(train_parse_args(
+        hyperparameters_default=HYPERPARAMETERS,
+        paths_default=PATHS))
+
     if not params['disable_cuda'] and torch.cuda.is_available():
         params['device'] = torch.device('cuda:0')
     else:
         params['device'] = torch.device('cpu')
 
     print(torch.cuda.is_available(), params['device'])
-
 
     loaders = get_data_loaders(
         imgs_dir=params['imgs_dir'],

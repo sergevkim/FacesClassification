@@ -9,7 +9,6 @@ from sklearn.preprocessing import normalize
 
 
 class Trainer:
-
     def __init__(self, params, model, optimizer, criterion):
         self.params = params
         self.checkpoints_dir = self.params['checkpoints_dir']
@@ -49,9 +48,8 @@ class Trainer:
 
         return epoch_start
 
-    def log(self, item, name, epoch):
-        #TODO other metrics
-        self.writer.add_scalar(f"{name}/v{self.version}", item, epoch)
+    def log(self, item, name, step):
+        self.writer.add_scalar(f"{name}/v{self.version}", item, step)
 
     def train_phase(self, train_loader, epoch):
         self.model.train()
@@ -59,11 +57,9 @@ class Trainer:
         for batch_idx, batch in enumerate(train_loader):
             inputs, labels = batch
             inputs = inputs.to(self.device)
-            labels = (labels + 1) / 2 #TODO the best way?
+            labels = (labels + 1) / 2 #TODO the best way or change outputs to -1, 1?
             labels = labels.to(self.device)
             outputs = self.model(inputs).double()
-            
-            #print(outputs.shape, labels.shape)
 
             if batch_idx == 0:
                 result = 0
@@ -86,34 +82,40 @@ class Trainer:
 
     def valid_phase(self, valid_loader, epoch):
         self.model.eval()
+        total_accuracy = 0
 
         for batch_idx, batch in enumerate(valid_loader):
             inputs, labels = batch
             inputs = inputs.to(self.device)
-            #labels = labels.to(self.device)
-            outputs = self.model(inputs).double()
+            outputs = self.model(inputs).double().cpu().detach().numpy()
+            predicts = np.round(outputs) * 2 - 1
 
-            labels = (labels.cpu().detach().numpy() + 1) / 2
-            outputs_2 = outputs.cpu().detach().numpy()
-            #outputs_3 = normalize(outputs_2)
-            outputs_3 = np.round(outputs_2)
+            total_accuracy += accuracy_score(predicts, labels)
 
+            '''
             if batch_idx == 0:
                 accuracy = []
             elif batch_idx % 100 == 0:
-                result = sum(accuracy) / len(accuracy)
+                batch_accuracy = sum(accuracy) / len(accuracy)
                 self.log(
-                    item=result,
+                    item=batch_accuracy,
                     name='Valid Accuracy',
                     epoch=epoch * len(valid_loader) + batch_idx)
                 accuracy = []
-            accuracy.append(accuracy_score(outputs_3, labels))
+            accuracy.append(accuracy_score(predicts, labels))
+            '''
 
             if self.verbose:
                 if batch_idx % 100 == 0:
                     print('valid', batch_idx, accuracy[-1])
-        
-        print(f"Accuracy is {sum(accuracy) / len(accuracy)}")
+
+        mean_accuracy = total_accuracy / len(valid_loader)
+        self.log(
+            item=mean_accuracy,
+            name='Valid Accuracy',
+            step=epoch)
+
+        #print(f"Accuracy is {sum(accuracy) / len(accuracy)}")
 
     def run(self, loaders):
         if self.checkpoint_filename:
@@ -128,7 +130,7 @@ class Trainer:
         for epoch in range(epoch_start, epoch_start + self.n_epochs):
             if self.verbose:
                 time_start = time.time()
-                print(f"EPOCH {epoch}")
+                print(f"======== EPOCH {epoch} ========")
 
             self.train_phase(train_loader, epoch)
             self.valid_phase(valid_loader, epoch)
@@ -136,3 +138,4 @@ class Trainer:
 
             if self.verbose:
                 print(f"Epoch time: {(time.time() - time_start) / 60} min")
+
