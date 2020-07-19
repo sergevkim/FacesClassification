@@ -30,8 +30,8 @@ def log_grad_norm(self, grad_input, grad_output):
 
 def prepare_labels(labels_filename, n_imgs, label_number):
     labels_file = open(labels_filename, 'r')
-    n_filenames = int(labels_file.readline())
-    all_features = labels_file.readline().split()
+    #n_filenames = int(labels_file.readline())
+    #all_features = labels_file.readline().split()
     labels = dict()
 
     for i in range(n_imgs):

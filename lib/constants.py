@@ -16,7 +16,7 @@ PATHS = {
     'checkpoints_dir': f"{Path.cwd()}/checkpoints",
     'checkpoint_filename': "",
     'imgs_dir': f"{Path.cwd()}/data/CelebaHQ",
-    'labels_filename': f"{Path.cwd()}/data/list_attr_celeba.txt",
+    'labels_filename': f"{Path.cwd()}/data/labels.txt",
     'logs_dir': f"{Path.cwd()}/logs",
 }
 #TODO traintest split
