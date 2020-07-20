@@ -18,7 +18,7 @@ def train_parse_args(hyperparameters_default, paths_default):
         '--label',
         default=hyperparameters_default['label'],
         type=str,
-        help=f"label, default: {hyperparameters_default[label]}") #TODO train on all labels?
+        help=f"label, default: {hyperparameters_default['label']}") #TODO train on all labels?
     parser.add_argument(
         '--n-epochs',
         default=hyperparameters_default['n_epochs'],
@@ -28,7 +28,7 @@ def train_parse_args(hyperparameters_default, paths_default):
         '--n-imgs',
         default=hyperparameters_default['n_imgs'],
         type=int,
-        help=f"n_imgs, default: {hyperparameters_default['n_imgs']}")
+        help=f"n_imgs < 30000, default: {hyperparameters_default['n_imgs']}")
     parser.add_argument(
         '--verbose',
         action='store_true',
@@ -43,17 +43,17 @@ def train_parse_args(hyperparameters_default, paths_default):
         '--checkpoints-dir',
         default=paths_default['checkpoints_dir'],
         type=str,
-        help=f"checkpoints dir, default: {hyperparameters_default['checkpoints_dir']}")
+        help=f"checkpoints dir, default: {paths_default['checkpoints_dir']}")
     parser.add_argument(
         '--checkpoint-filename',
         default=paths_default['checkpoint_filename'],
         type=str,
-        help=f"filename, default: {hyperparameters_default['labels_filename']}")
+        help=f"start train from <checkpoint filename>, default: {paths_default['checkpoint_filename']} (empty)")
     parser.add_argument(
         '--imgs-dir',
         default=paths_default['imgs_dir'],
         type=str,
-        help=f"imgs dir, default: {hyperparameters_default[imgd_dir]}")
+        help=f"imgs dir, default: {paths_default['imgs_dir']}")
     parser.add_argument(
         '--labels-filename',
         default=paths_default['labels_filename'],

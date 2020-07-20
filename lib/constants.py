@@ -7,6 +7,7 @@ HYPERPARAMETERS = {
     'label': 'Male',
     'n_epochs': 10,
     'n_imgs': 30000,
+    'test_size': 0.1,
     'verbose': False,
     'version': "0.1",
 }
@@ -23,10 +24,15 @@ PATHS = {
 
 
 SELECTED_FEATURES = {
-    'Bald': 5,
-    'Eyeglasses': 16,
-    'Male': 21,
-    'Smiling': 32,
-    'Young': 40,
+    '5_o_Clock_Shadow': 0,
+    'Arched_Eyebrows': 1,
+    'Attractive': 2,
+    'Bags_Under_Eyes': 3,
+    'Bald': 4,
+    'Bangs': 5,
+    'Eyeglasses': 15,
+    'Male': 20,
+    'Smiling': 31,
+    'Young': 39,
 }
 

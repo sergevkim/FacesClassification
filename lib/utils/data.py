@@ -10,8 +10,6 @@ from torchvision.transforms import ToTensor, Normalize
 
 from lib.constants import SELECTED_FEATURES
 
-import matplotlib.pyplot as plt #TODO remove
-
 
 def log_grad_norm(self, grad_input, grad_output):
     print('Inside ' + self.__class__.__name__ + ' backward')
@@ -28,26 +26,26 @@ def log_grad_norm(self, grad_input, grad_output):
     print('!')
 
 
-def prepare_labels(labels_filename, n_imgs, label_number):
-    labels_file = open(labels_filename, 'r')
-    #n_filenames = int(labels_file.readline())
-    #all_features = labels_file.readline().split()
+def prepare_labels(labels_filename, imgs_dir, n_imgs, label_number):
+    labels_file = open(labels_filename, 'r')    
     labels = dict()
+    
+    labels_file.readline()  # additional info
 
     for i in range(n_imgs):
         string = labels_file.readline().split()
-        img_number = int(string[0].split('.')[0])
-        img_number_six_symbols = '0' * (6 - len(str(img_number))) + str(img_number)  # example: 142 -> 000142
-        img_filename = f"/home/sergevkim/git/FacesClassification/data/img_align_celeba/{img_number_six_symbols}.jpg" #TODO imgs_dir
-        if 1 <= img_number <= n_imgs:
-            labels[img_filename] = float(string[label_number])
+        img_filename = f"{imgs_dir}/{string[0]}"
+        labels[img_filename] = float(string[label_number + 2]) # 0 is new_filename, 1 is orig_filename - it is why +2
+        
+        if i < 5:
+            print(img_filename, labels[img_filename])
 
     labels_file.close()
 
     return labels
 
 
-def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, label):
+def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, label, test_size):
     img_filenames = [str(p) for p in Path(imgs_dir).glob('*.jpg')]
     img_filenames.sort(key=lambda x : int(x.split('/')[-1][:-4]))
     img_filenames = img_filenames[:n_imgs]
@@ -55,12 +53,13 @@ def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, label):
     label_number = SELECTED_FEATURES[label]
     labels = prepare_labels(
         labels_filename=labels_filename,
+        imgs_dir=imgs_dir,
         n_imgs=n_imgs,
         label_number=label_number)
     
     train_img_filenames, valid_img_filenames = train_test_split(
         img_filenames,
-        test_size=0.1)
+        test_size=test_size)
 
     train_dataset = SimpleDataset(
         img_filenames=train_img_filenames,
@@ -102,7 +101,4 @@ class SimpleDataset:
             std=[0.229, 0.224, 0.225])(img)
         label = self.img_labels[img_filename]
         
-        #if idx in [0, 1, 2, 3, 4, 5, 1000, 1001]:
-        #    print(idx, img_filename, label)
-
         return (img, label)
