@@ -1,7 +1,6 @@
-#import sys
-#sys.path.append('..')
-import os
-print(os.getcwd())
+from pathlib import Path
+import sys
+sys.path.append(f"{Path.cwd()}/..")
 
 import torch
 from torch.nn import BCELoss

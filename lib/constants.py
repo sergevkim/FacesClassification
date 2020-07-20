@@ -6,7 +6,7 @@ HYPERPARAMETERS = {
     'disable_cuda': False,
     'label': 'Male',
     'n_epochs': 10,
-    'n_imgs': 30000,
+    'n_imgs': 29999,
     'test_size': 0.1,
     'verbose': False,
     'version': "0.1",

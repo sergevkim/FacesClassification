@@ -48,7 +48,7 @@ class Trainer:
 
         return epoch_start
 
-    def log(self, item, name, step):
+    def log(self, name, item, step):
         self.writer.add_scalar(f"{name}/v{self.version}", item, step)
 
     def train_phase(self, train_loader, epoch):
@@ -57,22 +57,22 @@ class Trainer:
         for batch_idx, batch in enumerate(train_loader):
             inputs, labels = batch
             inputs = inputs.to(self.device)
-            labels = (labels + 1) / 2 #TODO the best way or change outputs to -1, 1?
+            #labels = (labels + 1) / 2 #TODO the best way or change outputs to -1, 1?
             labels = labels.to(self.device)
             outputs = self.model(inputs).double()
 
             if batch_idx == 0:
-                result = 0
+                total_loss = 0
             elif batch_idx % 100 == 0:
-                result /= 100
+                mean_loss = total_loss / 100
                 self.log(
-                    item=result,
                     name='Train Loss',
-                    epoch=epoch * len(train_loader) + batch_idx)
+                    item=mean_loss,
+                    step=epoch * len(train_loader) + batch_idx)
 
             self.optimizer.zero_grad()
             loss = self.criterion(outputs, labels.unsqueeze(1))
-            result += loss.item()
+            total_loss += loss.item()
             loss.backward()
             self.optimizer.step()
 
@@ -88,34 +88,21 @@ class Trainer:
             inputs, labels = batch
             inputs = inputs.to(self.device)
             outputs = self.model(inputs).double().cpu().detach().numpy()
-            predicts = np.round(outputs) * 2 - 1
+            predicts = np.round(outputs)
 
-            total_accuracy += accuracy_score(predicts, labels)
-
-            '''
-            if batch_idx == 0:
-                accuracy = []
-            elif batch_idx % 100 == 0:
-                batch_accuracy = sum(accuracy) / len(accuracy)
-                self.log(
-                    item=batch_accuracy,
-                    name='Valid Accuracy',
-                    epoch=epoch * len(valid_loader) + batch_idx)
-                accuracy = []
-            accuracy.append(accuracy_score(predicts, labels))
-            '''
+            current_accuracy = accuracy_score(predicts, labels)
+            total_accuracy += current_accuracy
 
             if self.verbose:
                 if batch_idx % 100 == 0:
-                    print('valid', batch_idx, accuracy[-1])
+                    print('valid', batch_idx, current_accuracy)
 
         mean_accuracy = total_accuracy / len(valid_loader)
+        print(f"Accuracy is {mean_accuracy}")
         self.log(
-            item=mean_accuracy,
             name='Valid Accuracy',
+            item=mean_accuracy,
             step=epoch)
-
-        #print(f"Accuracy is {sum(accuracy) / len(accuracy)}")
 
     def run(self, loaders):
         if self.checkpoint_filename:
@@ -138,4 +125,3 @@ class Trainer:
 
             if self.verbose:
                 print(f"Epoch time: {(time.time() - time_start) / 60} min")
-

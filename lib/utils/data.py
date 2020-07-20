@@ -36,9 +36,6 @@ def prepare_labels(labels_filename, imgs_dir, n_imgs, label_number):
         string = labels_file.readline().split()
         img_filename = f"{imgs_dir}/{string[0]}"
         labels[img_filename] = float(string[label_number + 2]) # 0 is new_filename, 1 is orig_filename - it is why +2
-        
-        if i < 5:
-            print(img_filename, labels[img_filename])
 
     labels_file.close()
 
@@ -46,8 +43,7 @@ def prepare_labels(labels_filename, imgs_dir, n_imgs, label_number):
 
 
 def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, label, test_size):
-    img_filenames = [str(p) for p in Path(imgs_dir).glob('*.jpg')]
-    img_filenames.sort(key=lambda x : int(x.split('/')[-1][:-4]))
+    img_filenames = [str(p) for p in Path(imgs_dir).glob('*.png')]
     img_filenames = img_filenames[:n_imgs]
     
     label_number = SELECTED_FEATURES[label]
@@ -56,7 +52,7 @@ def get_data_loaders(imgs_dir, labels_filename, batch_size, n_imgs, label, test_
         imgs_dir=imgs_dir,
         n_imgs=n_imgs,
         label_number=label_number)
-    
+
     train_img_filenames, valid_img_filenames = train_test_split(
         img_filenames,
         test_size=test_size)
