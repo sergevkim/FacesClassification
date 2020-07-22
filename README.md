@@ -1,6 +1,6 @@
 # FacesClassification
 
-It is raw, so right now all tools are in lib directory
+Classifier for CelebaHQ dataset
 
 ## 1) Download and prepare data
 
